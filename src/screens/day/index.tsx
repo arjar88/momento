@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { useState } from 'react';
-import { Alert, FlatList, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { EmptyState, ErrorState, InlineError, LoadingState } from '@/components/screen-states';
@@ -137,16 +137,55 @@ function MemoryCard({
   onDelete: () => void;
 }) {
   const brand = useBrandColors();
+  const [imageLoading, setImageLoading] = useState(Boolean(memory.url));
+  const [imageFailed, setImageFailed] = useState(false);
+
   return (
     <View style={{ gap: spacing.sm }}>
-      {memory.url ? (
-        <Image
-          source={{ uri: memory.url }}
-          style={{ width: '100%', aspectRatio: 1, borderRadius: radius.md, backgroundColor: brand.card }}
-          contentFit="cover"
-        />
+      {memory.url && !imageFailed ? (
+        <View
+          style={{
+            width: '100%',
+            aspectRatio: 1,
+            borderRadius: radius.md,
+            borderCurve: 'continuous',
+            backgroundColor: brand.card,
+            overflow: 'hidden',
+          }}
+        >
+          <Image
+            source={{ uri: memory.url }}
+            style={{ width: '100%', height: '100%' }}
+            contentFit="cover"
+            transition={200}
+            onLoadStart={() => setImageLoading(true)}
+            onLoad={() => setImageLoading(false)}
+            onError={() => {
+              setImageLoading(false);
+              setImageFailed(true);
+            }}
+          />
+          {imageLoading ? (
+            <View
+              pointerEvents="none"
+              style={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: spacing.xs,
+              }}
+            >
+              <ActivityIndicator color={brand.terracotta} />
+              <ThemedText variant="caption">Loading photo…</ThemedText>
+            </View>
+          ) : null}
+        </View>
       ) : (
-        <View style={{ height: 180, borderRadius: radius.md, backgroundColor: brand.card, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ height: 180, borderRadius: radius.md, borderCurve: 'continuous', backgroundColor: brand.card, alignItems: 'center', justifyContent: 'center' }}>
           <ThemedText variant="subhead">Photo unavailable</ThemedText>
         </View>
       )}

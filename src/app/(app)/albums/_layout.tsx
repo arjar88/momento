@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router/stack';
 import { Link } from 'expo-router';
+import { Pressable } from 'react-native';
 
 import { Icon } from '@/components/icon';
 import { usePaperStackOptions } from '@/components/stack-options';
@@ -15,8 +16,21 @@ export default function AlbumsLayout() {
         options={{
           title: 'Albums',
           headerRight: () => (
-            <Link href="/albums/form" accessibilityLabel="New album">
-              <Icon ios="plus" android="add" color={brand.terracotta} />
+            <Link href="/albums/form" asChild>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="New album"
+                hitSlop={8}
+                style={({ pressed }) => ({
+                  width: 36,
+                  height: 36,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: pressed ? 0.6 : 1,
+                })}
+              >
+                <Icon ios="plus" android="add" color={brand.terracotta} />
+              </Pressable>
             </Link>
           ),
         }}

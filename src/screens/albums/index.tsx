@@ -65,16 +65,16 @@ export function AlbumsScreen() {
           keyExtractor={(item) => item.id}
           contentInsetAdjustmentBehavior="automatic"
           style={{ flex: 1, backgroundColor: brand.paper }}
-          contentContainerStyle={{ paddingBottom: spacing.xxl }}
+          contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md }}
           ListHeaderComponent={
             statsQuery.error ? (
-              <View style={{ padding: spacing.md }}>
+              <View>
                 <ThemedText selectable variant="subhead">
                   {statsQuery.error.message}
                 </ThemedText>
               </View>
             ) : statsQuery.data === undefined ? (
-              <ThemedText variant="caption" style={{ padding: spacing.md }}>
+              <ThemedText variant="caption">
                 Counting memories…
               </ThemedText>
             ) : undefined
@@ -86,44 +86,77 @@ export function AlbumsScreen() {
             const pace = pacePercent(count, item.start_date, item.end_date, profile?.weekly_goal ?? null);
             const mine = item.owner_id === session?.user.id;
             return (
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => {
-                  setAlbumId(item.id);
-                  router.push('/calendar');
-                }}
-                style={({ pressed }) => ({
+              <View
+                style={{
                   flexDirection: 'row',
-                  gap: spacing.md,
-                  paddingHorizontal: spacing.lg,
-                  paddingVertical: spacing.md,
                   alignItems: 'center',
-                  opacity: pressed ? 0.7 : 1,
-                  borderBottomWidth: 1,
-                  borderBottomColor: brand.line,
-                })}
+                  backgroundColor: brand.card,
+                  borderRadius: radius.lg,
+                  borderCurve: 'continuous',
+                  borderWidth: 1,
+                  borderColor: brand.line,
+                  padding: spacing.md,
+                  gap: spacing.sm,
+                }}
               >
-                {cover ? (
-                  <Image source={{ uri: cover }} style={{ width: 64, height: 64, borderRadius: radius.sm, backgroundColor: brand.card }} contentFit="cover" />
-                ) : (
-                  <View style={{ width: 64, height: 64, borderRadius: radius.sm, backgroundColor: brand.card, alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon ios="rectangle.stack" android="photo_album" color={brand.quiet} />
-                  </View>
-                )}
-                <View style={{ flex: 1, gap: 2 }}>
-                  <ThemedText variant="headline">{item.name}</ThemedText>
-                  <ThemedText variant="caption">{formatRange(item.start_date, item.end_date)}</ThemedText>
-                  <ThemedText variant="subhead">
-                    {count === 1 ? '1 memory' : `${count} memories`}
-                    {pace !== null ? ` · ${pace}% of the weekly pace` : ''}
-                    {item.status === 'finished' ? ' · Finished' : ''}
-                  </ThemedText>
-                  {status.error && status.variables?.album.id === item.id ? (
-                    <ThemedText selectable variant="caption">
-                      {errorMessage(status.error)}
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => {
+                    setAlbumId(item.id);
+                    router.push('/calendar');
+                  }}
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    flexDirection: 'row',
+                    gap: spacing.md,
+                    alignItems: 'center',
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  {cover ? (
+                    <Image
+                      source={{ uri: cover }}
+                      style={{
+                        width: 68,
+                        height: 68,
+                        borderRadius: radius.md,
+                        borderCurve: 'continuous',
+                        backgroundColor: brand.paper,
+                      }}
+                      contentFit="cover"
+                    />
+                  ) : (
+                    <View
+                      style={{
+                        width: 68,
+                        height: 68,
+                        borderRadius: radius.md,
+                        borderCurve: 'continuous',
+                        backgroundColor: brand.paper,
+                        borderWidth: 1,
+                        borderColor: brand.line,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Icon ios="rectangle.stack" android="photo_album" color={brand.quiet} />
+                    </View>
+                  )}
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <ThemedText variant="headline">{item.name}</ThemedText>
+                    <ThemedText variant="caption">{formatRange(item.start_date, item.end_date)}</ThemedText>
+                    <ThemedText variant="subhead">
+                      {count === 1 ? '1 memory' : `${count} memories`}
+                      {pace !== null ? ` · ${pace}% of the weekly pace` : ''}
+                      {item.status === 'finished' ? ' · Finished' : ''}
                     </ThemedText>
-                  ) : null}
-                </View>
+                    {status.error && status.variables?.album.id === item.id ? (
+                      <ThemedText selectable variant="caption">
+                        {errorMessage(status.error)}
+                      </ThemedText>
+                    ) : null}
+                  </View>
+                </Pressable>
                 {mine ? (
                   <MenuView
                     actions={[
@@ -145,12 +178,22 @@ export function AlbumsScreen() {
                       }
                     }}
                   >
-                    <View style={{ padding: spacing.sm }} accessibilityRole="button" accessibilityLabel={`Actions for ${item.name}`}>
+                    <View
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: radius.full,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Actions for ${item.name}`}
+                    >
                       <Icon ios="ellipsis" android="more_horiz" color={brand.ink} />
                     </View>
                   </MenuView>
                 ) : null}
-              </Pressable>
+              </View>
             );
           }}
         />
