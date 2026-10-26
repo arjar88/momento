@@ -1,6 +1,17 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import { Stack } from 'expo-router/stack';
 import { useFonts } from 'expo-font';
+import {
+  Fraunces_600SemiBold_Italic,
+  Fraunces_700Bold,
+  Fraunces_800ExtraBold,
+} from '@expo-google-fonts/fraunces';
+import {
+  Nunito_500Medium,
+  Nunito_600SemiBold,
+  Nunito_700Bold,
+  Nunito_800ExtraBold,
+} from '@expo-google-fonts/nunito';
 import * as SplashScreen from 'expo-splash-screen';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
@@ -26,9 +37,13 @@ const queryClient = new QueryClient({
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [fontsLoaded, fontError] = useFonts({
-    [fonts.serif]: require('../../assets/fonts/LibreBaskerville-Regular.ttf'),
-    [fonts.serifBold]: require('../../assets/fonts/LibreBaskerville-Bold.ttf'),
-    [fonts.serifItalic]: require('../../assets/fonts/LibreBaskerville-Italic.ttf'),
+    [fonts.serif]: Fraunces_700Bold,
+    [fonts.serifBold]: Fraunces_800ExtraBold,
+    [fonts.serifItalic]: Fraunces_600SemiBold_Italic,
+    [fonts.sans]: Nunito_500Medium,
+    [fonts.sansSemiBold]: Nunito_600SemiBold,
+    [fonts.sansBold]: Nunito_700Bold,
+    [fonts.sansExtraBold]: Nunito_800ExtraBold,
   });
 
   return (

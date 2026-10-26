@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { Mascot } from '@/components/mascot';
 import { TextField } from '@/components/text-field';
 import { ThemedText } from '@/components/themed-text';
 import { useSession } from '@/lib/session';
@@ -48,8 +49,11 @@ export function SignInScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: brand.paper, padding: spacing.lg, gap: spacing.md, justifyContent: 'center' }}>
-      <ThemedText variant="wordmark">Keepsakes</ThemedText>
-      <ThemedText variant="tagline">moments worth keeping</ThemedText>
+      <View style={{ alignItems: 'center', gap: spacing.xs, marginBottom: spacing.sm }}>
+        <Mascot size={64} mood="happy" />
+        <ThemedText variant="wordmark">Keepsakes</ThemedText>
+        <ThemedText variant="tagline">moments worth keeping</ThemedText>
+      </View>
       <TextField
         value={email}
         onChangeText={setEmail}
@@ -78,8 +82,8 @@ export function SignInScreen() {
         </ThemedText>
       ) : null}
       <Button title="Sign in" onPress={submit} loading={pending} disabled={!email.trim() || password.length < 6} />
-      <Link href="/create-account">
-        <ThemedText variant="subhead" style={{ color: brand.terracotta }}>
+      <Link href="/create-account" style={{ alignSelf: 'center', marginTop: spacing.xs }}>
+        <ThemedText variant="headline" style={{ color: brand.terracotta }}>
           Create an account
         </ThemedText>
       </Link>

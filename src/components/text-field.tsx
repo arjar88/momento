@@ -1,6 +1,6 @@
 import { TextInput, type TextInputProps } from 'react-native';
 
-import { radius, spacing, useBrandColors, useSemanticColors } from '@/theme';
+import { bubblyShadow, fonts, radius, spacing, useBrandColors, useSemanticColors } from '@/theme';
 
 export function TextField({ style, ...props }: TextInputProps) {
   const brand = useBrandColors();
@@ -13,16 +13,18 @@ export function TextField({ style, ...props }: TextInputProps) {
       {...props}
       style={[
         {
+          fontFamily: fonts.sansSemiBold,
           color: brand.ink,
           backgroundColor: brand.card,
           borderColor: brand.line,
-          borderWidth: 1,
+          borderWidth: 1.5,
           borderRadius: radius.md,
           borderCurve: 'continuous',
-          paddingHorizontal: spacing.md,
-          paddingVertical: spacing.sm + 4,
-          fontSize: 17,
-          minHeight: 48,
+          paddingHorizontal: spacing.md + 4,
+          paddingVertical: spacing.sm + 6,
+          fontSize: 16,
+          minHeight: 54,
+          boxShadow: bubblyShadow.pill,
         },
         style,
       ]}

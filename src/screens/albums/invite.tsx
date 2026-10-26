@@ -3,12 +3,13 @@ import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { MascotBanner } from '@/components/mascot';
 import { DataGate } from '@/components/screen-states';
 import { TextField } from '@/components/text-field';
 import { ThemedText } from '@/components/themed-text';
 import { fetchAlbum, fetchInvites, fetchMembers, fetchNames, inviteByEmail } from '@/lib/api';
 import { useSession } from '@/lib/session';
-import { spacing, useBrandColors } from '@/theme';
+import { bubblyShadow, radius, spacing, useBrandColors } from '@/theme';
 import { errorMessage } from '@/utils/errors';
 
 export function InviteScreen({ albumId }: { albumId: string }) {
@@ -57,13 +58,16 @@ export function InviteScreen({ albumId }: { albumId: string }) {
           <ScrollView
             keyboardShouldPersistTaps="handled"
             contentInsetAdjustmentBehavior="automatic"
-            contentContainerStyle={{ padding: spacing.lg, gap: spacing.md, backgroundColor: brand.paper, flexGrow: 1 }}
+            style={{ flex: 1, backgroundColor: brand.paper }}
+            contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, flexGrow: 1 }}
           >
-            <ThemedText variant="body">
-              Invite someone by email. Keepsakes does not send mail. A person who already has an account joins now. Otherwise the invite attaches when they sign up with this address.
-            </ThemedText>
+            <MascotBanner
+              title="Share this album"
+              subtitle="Invite someone by email. They join immediately if they have an account, or when they sign up."
+              mood="happy"
+            />
             {owner ? (
-              <>
+              <View style={{ gap: spacing.md }}>
                 <TextField
                   value={email}
                   onChangeText={setEmail}
@@ -84,27 +88,41 @@ export function InviteScreen({ albumId }: { albumId: string }) {
                   disabled={!email.includes('@')}
                   onPress={() => invite.mutate()}
                 />
-              </>
+              </View>
             ) : (
               <ThemedText variant="body">Only the owner can invite people.</ThemedText>
             )}
-            <ThemedText variant="smallCaps">In this album</ThemedText>
-            {data.members.length === 0 ? <ThemedText variant="body">No one is here yet.</ThemedText> : null}
-            {data.members.map((member) => (
-              <ThemedText key={member.user_id} variant="body">
-                {member.user_id === session?.user.id ? 'You' : data.names[member.user_id] || 'Someone'} · {member.role}
-              </ThemedText>
-            ))}
-            <ThemedText variant="smallCaps">Waiting on an account</ThemedText>
-            {data.invites.length === 0 ? (
-              <ThemedText variant="body">No pending emails.</ThemedText>
-            ) : (
-              data.invites.map((row) => (
-                <ThemedText key={row.id} selectable variant="body">
-                  {row.email}
+            <View
+              style={{
+                backgroundColor: brand.card,
+                borderRadius: radius.lg,
+                borderCurve: 'continuous',
+                borderWidth: 1.5,
+                borderColor: brand.line,
+                padding: spacing.md + 2,
+                gap: spacing.sm,
+                boxShadow: bubblyShadow.card,
+              }}
+            >
+              <ThemedText variant="smallCaps">In this album</ThemedText>
+              {data.members.length === 0 ? <ThemedText variant="body">No one is here yet.</ThemedText> : null}
+              {data.members.map((member) => (
+                <ThemedText key={member.user_id} variant="headline">
+                  {member.user_id === session?.user.id ? 'You' : data.names[member.user_id] || 'Someone'} · {member.role}
                 </ThemedText>
-              ))
-            )}
+              ))}
+              <View style={{ height: 1, backgroundColor: brand.line, marginVertical: spacing.xs }} />
+              <ThemedText variant="smallCaps">Waiting on an account</ThemedText>
+              {data.invites.length === 0 ? (
+                <ThemedText variant="body">No pending emails.</ThemedText>
+              ) : (
+                data.invites.map((row) => (
+                  <ThemedText key={row.id} selectable variant="body">
+                    {row.email}
+                  </ThemedText>
+                ))
+              )}
+            </View>
           </ScrollView>
         );
       }}

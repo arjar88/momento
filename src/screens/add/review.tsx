@@ -12,7 +12,7 @@ import { fetchAlbum, saveMemory } from '@/lib/api';
 import { noticeCopy } from '@/lib/intake';
 import { useMemoryDraft } from '@/lib/memory-draft';
 import { useSession } from '@/lib/session';
-import { radius, spacing, useBrandColors } from '@/theme';
+import { bubblyShadow, radius, spacing, useBrandColors } from '@/theme';
 import { clampDate, formatMonthDay, todayKey, toDateKey } from '@/utils/dates';
 import { errorMessage } from '@/utils/errors';
 
@@ -97,41 +97,53 @@ export function ReviewScreen() {
       {draft.photos.map((photo) => {
         const chosen = photo.takenOn ?? suggested;
         return (
-        <View key={photo.localId} style={{ gap: spacing.sm }}>
-          <Image
-            source={{ uri: photo.uri }}
-            style={{ width: '100%', aspectRatio: 1, borderRadius: radius.md, backgroundColor: brand.card }}
-            contentFit="cover"
-          />
-          {draft.lockedDate || photo.takenOn ? (
-            <ThemedText variant="headline">{formatMonthDay(photo.takenOn ?? draft.lockedDate!)}</ThemedText>
-          ) : null}
-          {!draft.lockedDate && chosen ? (
-            <DateField
-              label={photo.takenOn ? 'Date' : 'Choose the day'}
-              value={dateFromKey(chosen)}
-              minimum={album ? dateFromKey(album.start_date) : undefined}
-              maximum={dateFromKey(latest)}
-              onChange={(next) => draft.updatePhoto(photo.localId, { takenOn: toDateKey(next) })}
+          <View
+            key={photo.localId}
+            style={{
+              backgroundColor: brand.card,
+              borderRadius: radius.lg,
+              borderCurve: 'continuous',
+              borderWidth: 1.5,
+              borderColor: brand.line,
+              padding: spacing.md,
+              gap: spacing.sm,
+              boxShadow: bubblyShadow.card,
+            }}
+          >
+            <Image
+              source={{ uri: photo.uri }}
+              style={{ width: '100%', aspectRatio: 1, borderRadius: radius.md, borderCurve: 'continuous', backgroundColor: brand.paper }}
+              contentFit="cover"
             />
-          ) : null}
-          {!photo.takenOn && !draft.lockedDate && suggested ? (
-            <Button
-              title="Use this date"
-              variant="secondary"
-              onPress={() => draft.updatePhoto(photo.localId, { takenOn: suggested })}
+            {draft.lockedDate || photo.takenOn ? (
+              <ThemedText variant="title">{formatMonthDay(photo.takenOn ?? draft.lockedDate!)}</ThemedText>
+            ) : null}
+            {!draft.lockedDate && chosen ? (
+              <DateField
+                label={photo.takenOn ? 'Date' : 'Choose the day'}
+                value={dateFromKey(chosen)}
+                minimum={album ? dateFromKey(album.start_date) : undefined}
+                maximum={dateFromKey(latest)}
+                onChange={(next) => draft.updatePhoto(photo.localId, { takenOn: toDateKey(next) })}
+              />
+            ) : null}
+            {!photo.takenOn && !draft.lockedDate && suggested ? (
+              <Button
+                title="Use this date"
+                variant="secondary"
+                onPress={() => draft.updatePhoto(photo.localId, { takenOn: suggested })}
+              />
+            ) : null}
+            {!photo.takenOn && !draft.lockedDate && !suggested && album ? (
+              <ThemedText variant="subhead">This album has no day yet that can take a photo.</ThemedText>
+            ) : null}
+            <TextField
+              value={photo.caption}
+              onChangeText={(caption) => draft.updatePhoto(photo.localId, { caption })}
+              placeholder="Caption"
+              multiline
             />
-          ) : null}
-          {!photo.takenOn && !draft.lockedDate && !suggested && album ? (
-            <ThemedText variant="subhead">This album has no day yet that can take a photo.</ThemedText>
-          ) : null}
-          <TextField
-            value={photo.caption}
-            onChangeText={(caption) => draft.updatePhoto(photo.localId, { caption })}
-            placeholder="Caption"
-            multiline
-          />
-        </View>
+          </View>
         );
       })}
       {save.error ? (

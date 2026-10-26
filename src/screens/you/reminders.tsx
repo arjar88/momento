@@ -5,11 +5,12 @@ import { ScrollView, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { DateField } from '@/components/date-field';
+import { MascotBanner } from '@/components/mascot';
 import { ThemedText } from '@/components/themed-text';
 import { updateProfile } from '@/lib/api';
 import { syncReminderNotifications } from '@/lib/notifications';
 import { useSession } from '@/lib/session';
-import { spacing, useBrandColors } from '@/theme';
+import { bubblyShadow, radius, spacing, useBrandColors } from '@/theme';
 import { parseTime, timeKey, WEEKDAY_NAMES } from '@/utils/dates';
 import { errorMessage } from '@/utils/errors';
 
@@ -60,28 +61,41 @@ export function RemindersScreen() {
     <ScrollView
       keyboardShouldPersistTaps="handled"
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ padding: spacing.lg, gap: spacing.md, backgroundColor: brand.paper }}
+      style={{ flex: 1, backgroundColor: brand.paper }}
+      contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}
     >
-      {needsGoal ? (
-        <ThemedText variant="body">
-          You chose to decide the pace yourself, so there is no quota to nudge. Pick 1, 2, or 3 on You if you want a reminder when the week is still open.
-        </ThemedText>
-      ) : (
-        <ThemedText variant="body">
-          On these days, at this time, Keepsakes can remind you on this device. If the week’s number is still open, the calendar shows a nudge to add a memory.
-        </ThemedText>
-      )}
-      <View style={{ gap: spacing.sm }}>
+      <MascotBanner
+        title="Gentle reminders"
+        subtitle={
+          needsGoal
+            ? 'Pick 1, 2, or 3 on You if you want a reminder when the week is still open.'
+            : 'If the week’s number is still open, the calendar shows a nudge to add a memory.'
+        }
+        mood="calm"
+      />
+      <View
+        style={{
+          backgroundColor: brand.card,
+          borderRadius: radius.lg,
+          borderCurve: 'continuous',
+          borderWidth: 1.5,
+          borderColor: brand.line,
+          padding: spacing.md + 2,
+          gap: spacing.sm + 2,
+          boxShadow: bubblyShadow.card,
+        }}
+      >
         {WEEKDAY_NAMES.map((label, index) => (
           <View key={label} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <ThemedText variant="body">{label}</ThemedText>
+            <ThemedText variant="headline">{label}</ThemedText>
             <Host matchContents>
               <Switch value={days.includes(index)} onValueChange={(on) => toggle(index, on)} />
             </Host>
           </View>
         ))}
+        <View style={{ height: 1, backgroundColor: brand.line, marginVertical: spacing.xs }} />
+        <DateField label="Time" mode="time" value={when} onChange={setWhen} />
       </View>
-      <DateField label="Time" mode="time" value={when} onChange={setWhen} />
       {error ? (
         <ThemedText selectable variant="subhead">
           {error}

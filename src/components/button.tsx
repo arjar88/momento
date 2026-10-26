@@ -1,11 +1,11 @@
 import { ActivityIndicator, Pressable, type StyleProp, type ViewStyle } from 'react-native';
 
 import { ThemedText } from './themed-text';
-import { radius, spacing, useBrandColors } from '@/theme';
+import { bubblyShadow, radius, spacing, useBrandColors } from '@/theme';
 
 const sizes = {
-  sm: { paddingVertical: spacing.xs, paddingHorizontal: spacing.sm },
-  md: { paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md },
+  sm: { paddingVertical: spacing.xs + 2, paddingHorizontal: spacing.md, minHeight: 38 },
+  md: { paddingVertical: spacing.sm + 4, paddingHorizontal: spacing.lg, minHeight: 54 },
 } as const;
 
 export function Button({
@@ -27,7 +27,7 @@ export function Button({
 }) {
   const brand = useBrandColors();
   const background =
-    variant === 'primary' ? brand.terracotta : variant === 'destructive' ? brand.ink : 'transparent';
+    variant === 'primary' ? brand.terracotta : variant === 'destructive' ? brand.ink : brand.card;
   const color = variant === 'secondary' ? brand.ink : '#fffdfb';
   const inactive = disabled || loading;
 
@@ -41,14 +41,14 @@ export function Button({
       style={({ pressed }) => [
         {
           backgroundColor: background,
-          borderRadius: radius.md,
-          borderCurve: 'continuous',
+          borderRadius: radius.full,
           alignItems: 'center',
           justifyContent: 'center',
-          minHeight: 48,
-          opacity: inactive ? 0.45 : pressed ? 0.75 : 1,
-          borderWidth: variant === 'secondary' ? 1 : 0,
+          opacity: inactive ? 0.45 : pressed ? 0.82 : 1,
+          transform: [{ scale: pressed ? 0.98 : 1 }],
+          borderWidth: variant === 'secondary' ? 1.5 : 0,
           borderColor: brand.line,
+          boxShadow: variant === 'primary' ? bubblyShadow.float : bubblyShadow.pill,
           ...sizes[size],
         },
         style,

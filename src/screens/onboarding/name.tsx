@@ -2,8 +2,8 @@ import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { MascotBanner } from '@/components/mascot';
 import { TextField } from '@/components/text-field';
-import { ThemedText } from '@/components/themed-text';
 import { useOnboardingDraft } from '@/lib/onboarding-draft';
 import { spacing, useBrandColors } from '@/theme';
 
@@ -14,8 +14,12 @@ export function NameScreen() {
   const ready = displayName.trim().length > 0;
 
   return (
-    <View style={{ flex: 1, backgroundColor: brand.paper, padding: spacing.lg, gap: spacing.md }}>
-      <ThemedText variant="body">This is how the calendar greets you, and how friends see you in a shared album.</ThemedText>
+    <View style={{ flex: 1, backgroundColor: brand.paper, padding: spacing.lg, gap: spacing.lg }}>
+      <MascotBanner
+        title="What should we call you?"
+        subtitle="This is how the calendar greets you, and how friends see you in a shared album."
+        mood="happy"
+      />
       <TextField
         value={displayName}
         onChangeText={setDisplayName}

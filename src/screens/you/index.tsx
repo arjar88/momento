@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Alert, Pressable, ScrollView, View } from 'react-native';
 
+import { MascotBanner } from '@/components/mascot';
 import { ErrorState, LoadingState } from '@/components/screen-states';
 import { TextField } from '@/components/text-field';
 import { ThemedText } from '@/components/themed-text';
@@ -11,14 +12,14 @@ import { deleteAccount, fetchPeople, updateProfile } from '@/lib/api';
 import type { WeeklyGoal } from '@/lib/database';
 import { ensureNotificationPermission, syncReminderNotifications } from '@/lib/notifications';
 import { useSession } from '@/lib/session';
-import { radius, spacing, useBrandColors } from '@/theme';
+import { bubblyShadow, radius, spacing, useBrandColors } from '@/theme';
 import { errorMessage } from '@/utils/errors';
 
-const goals: { value: WeeklyGoal; label: string }[] = [
-  { value: 1, label: '1 a week' },
-  { value: 2, label: '2 a week' },
-  { value: 3, label: '3 a week' },
-  { value: null, label: 'I’ll decide myself' },
+const goals: { value: WeeklyGoal; label: string; badge: string }[] = [
+  { value: 1, label: '1 a week', badge: '1' },
+  { value: 2, label: '2 a week', badge: '2' },
+  { value: 3, label: '3 a week', badge: '3' },
+  { value: null, label: 'I’ll decide myself', badge: '∞' },
 ];
 
 export function YouScreen() {
@@ -110,28 +111,68 @@ export function YouScreen() {
       style={{ flex: 1, backgroundColor: brand.paper }}
       contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.lg }}
     >
+      <MascotBanner
+        title={`Hi ${profile.display_name || 'friend'}!`}
+        subtitle="Your pace, reminders, and shared circles."
+        mood="happy"
+      />
+
       <SectionCard title="Name">
         <TextField value={name} onChangeText={setName} onEndEditing={saveName} placeholder="Your name" autoCapitalize="words" />
       </SectionCard>
 
       <SectionCard title="Weekly pace">
-        {goals.map((goal) => {
-          const selected = profile.weekly_goal === goal.value;
-          return (
-            <Pressable
-              key={goal.label}
-              accessibilityRole="button"
-              accessibilityState={{ selected }}
-              disabled={busy}
-              onPress={() => saveGoal(goal.value)}
-              style={{ paddingVertical: spacing.xs }}
-            >
-              <ThemedText variant="body" style={{ color: selected ? brand.terracotta : brand.ink }}>
-                {goal.label}
-              </ThemedText>
-            </Pressable>
-          );
-        })}
+        <View style={{ gap: spacing.sm }}>
+          {goals.map((goal) => {
+            const selected = profile.weekly_goal === goal.value;
+            return (
+              <Pressable
+                key={goal.label}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                disabled={busy}
+                onPress={() => saveGoal(goal.value)}
+                style={({ pressed }) => ({
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: spacing.md,
+                  paddingVertical: spacing.xs + 4,
+                  paddingHorizontal: spacing.sm,
+                  borderRadius: radius.md,
+                  borderCurve: 'continuous',
+                  backgroundColor: selected ? brand.paper : 'transparent',
+                  borderWidth: selected ? 1.5 : 0,
+                  borderColor: brand.terracotta,
+                  opacity: pressed ? 0.75 : 1,
+                })}
+              >
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: selected ? brand.terracotta : brand.paper,
+                    borderWidth: 2,
+                    borderColor: selected ? '#fffdfb' : brand.line,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: bubblyShadow.pill,
+                  }}
+                >
+                  <ThemedText
+                    variant="headline"
+                    style={{ color: selected ? '#fffdfb' : brand.muted, fontVariant: ['tabular-nums'] }}
+                  >
+                    {goal.badge}
+                  </ThemedText>
+                </View>
+                <ThemedText variant="headline" style={{ color: selected ? brand.terracotta : brand.ink, flex: 1 }}>
+                  {goal.label}
+                </ThemedText>
+              </Pressable>
+            );
+          })}
+        </View>
       </SectionCard>
 
       <SectionCard title="Reminders">
@@ -143,7 +184,7 @@ export function YouScreen() {
         </View>
         {profile.reminder_enabled ? (
           <Pressable accessibilityRole="button" onPress={() => router.push('/you/reminders')} style={{ paddingTop: spacing.xs }}>
-            <ThemedText variant="body" style={{ color: brand.terracotta }}>
+            <ThemedText variant="headline" style={{ color: brand.terracotta }}>
               Days and time
             </ThemedText>
           </Pressable>
@@ -164,10 +205,10 @@ export function YouScreen() {
 
       <SectionCard title="Account">
         <Pressable accessibilityRole="button" onPress={() => void signOut()} style={{ paddingVertical: spacing.xs }}>
-          <ThemedText variant="body">Sign out</ThemedText>
+          <ThemedText variant="headline">Sign out</ThemedText>
         </Pressable>
         <Pressable accessibilityRole="button" onPress={removeAccount} style={{ paddingVertical: spacing.xs }}>
-          <ThemedText variant="body" style={{ color: brand.terracotta }}>
+          <ThemedText variant="headline" style={{ color: brand.terracotta }}>
             Delete account
           </ThemedText>
         </Pressable>
@@ -179,17 +220,18 @@ export function YouScreen() {
 function SectionCard({ title, children }: { title: string; children: ReactNode }) {
   const brand = useBrandColors();
   return (
-    <View style={{ gap: spacing.xs }}>
+    <View style={{ gap: spacing.xs + 2 }}>
       <ThemedText variant="smallCaps">{title}</ThemedText>
       <View
         style={{
           backgroundColor: brand.card,
-          borderRadius: radius.md,
+          borderRadius: radius.lg,
           borderCurve: 'continuous',
-          borderWidth: 1,
+          borderWidth: 1.5,
           borderColor: brand.line,
-          padding: spacing.md,
+          padding: spacing.md + 2,
           gap: spacing.sm,
+          boxShadow: bubblyShadow.card,
         }}
       >
         {children}

@@ -4,6 +4,7 @@ import { ScrollView, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { dateFromKey, DateField } from '@/components/date-field';
+import { MascotBanner } from '@/components/mascot';
 import { TextField } from '@/components/text-field';
 import { ThemedText } from '@/components/themed-text';
 import { createAlbum, updateProfile } from '@/lib/api';
@@ -11,7 +12,7 @@ import { useOnboardingDraft } from '@/lib/onboarding-draft';
 import { useSession } from '@/lib/session';
 import { addYears, toDateKey, todayKey } from '@/utils/dates';
 import { errorMessage } from '@/utils/errors';
-import { spacing, useBrandColors } from '@/theme';
+import { bubblyShadow, radius, spacing, useBrandColors } from '@/theme';
 
 export function FirstAlbumScreen() {
   const brand = useBrandColors();
@@ -61,12 +62,30 @@ export function FirstAlbumScreen() {
     <ScrollView
       keyboardShouldPersistTaps="handled"
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ padding: spacing.lg, gap: spacing.md, backgroundColor: brand.paper }}
+      style={{ flex: 1, backgroundColor: brand.paper }}
+      contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}
     >
-      <ThemedText variant="body">The calendar opens on an album, so this first one is required.</ThemedText>
-      <TextField value={name} onChangeText={setName} placeholder="Album name" autoCapitalize="words" />
-      <DateField label="Starts" value={dateFromKey(start)} maximum={dateFromKey(end)} onChange={(date) => setStart(toDateKey(date))} />
-      <DateField label="Ends" value={dateFromKey(end)} minimum={dateFromKey(start)} onChange={(date) => setEnd(toDateKey(date))} />
+      <MascotBanner
+        title="Name your first album"
+        subtitle="The calendar opens on an album, so this first one is required."
+        mood="happy"
+      />
+      <View
+        style={{
+          backgroundColor: brand.card,
+          borderRadius: radius.lg,
+          borderCurve: 'continuous',
+          borderWidth: 1.5,
+          borderColor: brand.line,
+          padding: spacing.md + 2,
+          gap: spacing.md,
+          boxShadow: bubblyShadow.card,
+        }}
+      >
+        <TextField value={name} onChangeText={setName} placeholder="Album name" autoCapitalize="words" />
+        <DateField label="Starts" value={dateFromKey(start)} maximum={dateFromKey(end)} onChange={(date) => setStart(toDateKey(date))} />
+        <DateField label="Ends" value={dateFromKey(end)} minimum={dateFromKey(start)} onChange={(date) => setEnd(toDateKey(date))} />
+      </View>
       {error ? (
         <ThemedText variant="subhead" selectable>
           {error}

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { Mascot } from '@/components/mascot';
 import { TextField } from '@/components/text-field';
 import { ThemedText } from '@/components/themed-text';
 import { useSession } from '@/lib/session';
@@ -52,8 +53,13 @@ export function CreateAccountScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: brand.paper, padding: spacing.lg, gap: spacing.md, justifyContent: 'center' }}>
-      <ThemedText variant="wordmark">Create account</ThemedText>
-      <ThemedText variant="body">Use the email people will invite you with.</ThemedText>
+      <View style={{ alignItems: 'center', gap: spacing.xs, marginBottom: spacing.sm }}>
+        <Mascot size={64} mood="happy" />
+        <ThemedText variant="wordmark">Create account</ThemedText>
+        <ThemedText variant="subhead" style={{ textAlign: 'center' }}>
+          Use the email people will invite you with.
+        </ThemedText>
+      </View>
       <TextField
         value={email}
         onChangeText={setEmail}
@@ -81,8 +87,8 @@ export function CreateAccountScreen() {
         </ThemedText>
       ) : null}
       <Button title="Create account" onPress={submit} loading={pending} disabled={!email.trim() || password.length < 6} />
-      <Link href="/sign-in">
-        <ThemedText variant="subhead" style={{ color: brand.terracotta }}>
+      <Link href="/sign-in" style={{ alignSelf: 'center', marginTop: spacing.xs }}>
+        <ThemedText variant="headline" style={{ color: brand.terracotta }}>
           I already have an account
         </ThemedText>
       </Link>
