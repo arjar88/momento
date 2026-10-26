@@ -53,17 +53,19 @@ export async function createAlbum(input: {
   startDate: string;
   endDate: string;
 }): Promise<Album> {
-  const { data, error } = await requireSupabase()
-    .from('albums')
-    .insert({
-      owner_id: input.ownerId,
-      name: input.name.trim(),
-      start_date: input.startDate,
-      end_date: input.endDate,
-    })
-    .select('*')
-    .single();
-  if (error) throw new Error(error.message);
+  const client = requireSupabase();
+  const id = Crypto.randomUUID();
+  const { error: insertError } = await client.from('albums').insert({
+    id,
+    owner_id: input.ownerId,
+    name: input.name.trim(),
+    start_date: input.startDate,
+    end_date: input.endDate,
+  });
+  if (insertError) throw new Error(insertError.message);
+
+  const { data, error: selectError } = await client.from('albums').select('*').eq('id', id).single();
+  if (selectError) throw new Error(selectError.message);
   return data;
 }
 
@@ -151,7 +153,10 @@ export async function saveMemory(input: {
     caption: input.caption.trim(),
     storage_path: path,
   });
-  if (insertError) throw new Error(insertError.message);
+  if (insertError) {
+    console.error('[memories] table insert failed:', insertError.message, { id, albumId: input.albumId, takenOn: input.takenOn, path });
+    throw new Error(insertError.message);
+  }
 
   try {
     const response = await fetch(prepared);
@@ -161,7 +166,10 @@ export async function saveMemory(input: {
       contentType: 'image/jpeg',
       upsert: false,
     });
-    if (uploadError) throw new Error(uploadError.message);
+    if (uploadError) {
+      console.error('[memories] storage upload failed:', uploadError.message, { path, byteLength: bytes.byteLength });
+      throw new Error(uploadError.message);
+    }
   } catch (caught) {
     const { error: cleanupError } = await client.from('memories').delete().eq('id', id);
     const message = errorMessage(caught, 'Could not save the photo.');

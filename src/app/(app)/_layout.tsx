@@ -12,6 +12,7 @@ export default function AppLayout() {
   const router = useRouter();
 
   useEffect(() => {
+    if (process.env.EXPO_OS === 'web') return;
     const subscription = Notifications.addNotificationResponseReceivedListener(() => {
       router.push('/add');
     });

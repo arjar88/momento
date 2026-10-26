@@ -71,16 +71,16 @@ export function RemindersScreen() {
           On these days, at this time, Keepsakes can remind you on this device. If the week’s number is still open, the calendar shows a nudge to add a memory.
         </ThemedText>
       )}
-      <Host matchContents>
-        <View style={{ gap: spacing.sm }}>
-          {WEEKDAY_NAMES.map((label, index) => (
-            <View key={label} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <ThemedText variant="body">{label}</ThemedText>
+      <View style={{ gap: spacing.sm }}>
+        {WEEKDAY_NAMES.map((label, index) => (
+          <View key={label} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <ThemedText variant="body">{label}</ThemedText>
+            <Host matchContents>
               <Switch value={days.includes(index)} onValueChange={(on) => toggle(index, on)} />
-            </View>
-          ))}
-        </View>
-      </Host>
+            </Host>
+          </View>
+        ))}
+      </View>
       <DateField label="Time" mode="time" value={when} onChange={setWhen} />
       {error ? (
         <ThemedText selectable variant="subhead">

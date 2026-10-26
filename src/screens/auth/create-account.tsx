@@ -24,20 +24,27 @@ export function CreateAccountScreen() {
     setError(null);
     setNotice(null);
     setPending(true);
+    console.log('[auth] create-account submit started for:', email.trim());
     try {
       const { data, error: signError } = await requireSupabase().auth.signUp({
         email: email.trim(),
         password,
       });
-      if (signError) throw new Error(signError.message);
+      if (signError) {
+        console.error('[auth] signUp error:', signError.message);
+        throw new Error(signError.message);
+      }
+      console.log('[auth] signUp succeeded:', { userId: data.user?.id, hasSession: !!data.session });
       if (!data.session) {
         setNotice('Check your email to confirm the account, then sign in. Keepsakes does not send album invitations.');
         return;
       }
-      await refreshProfile();
+      await refreshProfile(data.session.user.id);
       router.replace('/intro');
     } catch (caught) {
-      setError(errorMessage(caught, 'Could not create the account.'));
+      const msg = errorMessage(caught, 'Could not create the account.');
+      console.error('[auth] create-account failed:', msg);
+      setError(msg);
     } finally {
       setPending(false);
     }

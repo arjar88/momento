@@ -14,7 +14,7 @@ type SessionValue = {
   session: Session | null;
   profile: Profile | null;
   profileError: string | null;
-  refreshProfile: () => Promise<Profile | null>;
+  refreshProfile: (userId?: string) => Promise<Profile | null>;
   signOut: () => Promise<void>;
 };
 
@@ -33,14 +33,34 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     let active = true;
     const client = requireSupabase();
 
-    client.auth.getSession().then(({ data }) => {
+    client.auth.getSession().then(({ data, error }) => {
       if (!active) return;
+      console.log('[auth] initial getSession:', {
+        hasSession: !!data.session,
+        userId: data.session?.user.id ?? null,
+        email: data.session?.user.email ?? null,
+        error: error?.message ?? null,
+      });
+      if (data.session) {
+        setProfileReady(false);
+      }
       setSession(data.session);
       setAuthReady(true);
     });
 
-    const { data: subscription } = client.auth.onAuthStateChange((_event, next) => {
-      setSession(next);
+    const { data: subscription } = client.auth.onAuthStateChange((event, next) => {
+      console.log('[auth] onAuthStateChange:', {
+        event,
+        hasSession: !!next,
+        userId: next?.user.id ?? null,
+        email: next?.user.email ?? null,
+      });
+      setSession((prev) => {
+        if (next && next.user.id !== prev?.user.id) {
+          setProfileReady(false);
+        }
+        return next;
+      });
       setAuthReady(true);
       if (!next) {
         setProfile(null);
@@ -55,10 +75,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     };
   }, [queryClient]);
 
+  const userId = session?.user.id ?? null;
+
   useEffect(() => {
     if (!isSupabaseConfigured) return;
     if (!authReady) return;
-    if (!session) {
+    if (!userId) {
       setProfile(null);
       setProfileError(null);
       setProfileReady(true);
@@ -69,15 +91,19 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setProfile(null);
     setProfileError(null);
     setProfileReady(false);
-    fetchProfile(session.user.id)
+    console.log('[auth] fetching profile for userId:', userId);
+    fetchProfile(userId)
       .then((next) => {
         if (!active) return;
+        console.log('[auth] fetchProfile result:', next);
         setProfile(next);
         setProfileError(null);
       })
       .catch((caught) => {
         if (!active) return;
-        setProfileError(errorMessage(caught, 'Could not load your profile.'));
+        const msg = errorMessage(caught, 'Could not load your profile.');
+        console.error('[auth] fetchProfile error:', msg);
+        setProfileError(msg);
       })
       .finally(() => {
         if (active) setProfileReady(true);
@@ -86,16 +112,24 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, [authReady, session]);
+  }, [authReady, userId]);
 
-  const refreshProfile = useCallback(async () => {
-    if (!session) {
+  const refreshProfile = useCallback(async (explicitUserId?: string) => {
+    let targetUserId = explicitUserId ?? session?.user.id;
+    if (!targetUserId && isSupabaseConfigured) {
+      const { data } = await requireSupabase().auth.getSession();
+      if (data.session) {
+        setSession(data.session);
+        targetUserId = data.session.user.id;
+      }
+    }
+    if (!targetUserId) {
       setProfile(null);
       setProfileError(null);
       return null;
     }
     try {
-      const next = await fetchProfile(session.user.id);
+      const next = await fetchProfile(targetUserId);
       setProfile(next);
       setProfileError(null);
       setProfileReady(true);

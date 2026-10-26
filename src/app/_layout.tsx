@@ -3,7 +3,7 @@ import { Stack } from 'expo-router/stack';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -48,12 +48,29 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
   const brand = useBrandColors();
   const { ready, configured, session, profile, profileError, refreshProfile, signOut } = useSession();
   const onboarded = !!profile?.onboarding_complete;
+  const [booted, setBooted] = useState(false);
 
   useEffect(() => {
-    if (fontsReady && ready) void SplashScreen.hideAsync();
+    if (fontsReady && ready) {
+      setBooted(true);
+      void SplashScreen.hideAsync();
+    }
   }, [fontsReady, ready]);
 
-  if (!fontsReady || !ready) return null;
+  useEffect(() => {
+    console.log('[auth] RootNavigator state:', {
+      booted,
+      ready,
+      configured,
+      hasSession: !!session,
+      userId: session?.user.id ?? null,
+      hasProfile: !!profile,
+      onboarded,
+      profileError,
+    });
+  }, [booted, configured, onboarded, profile, profileError, ready, session]);
+
+  if (!booted && (!fontsReady || !ready)) return null;
 
   if (session && !profile && profileError) {
     return (

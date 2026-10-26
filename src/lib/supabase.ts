@@ -5,8 +5,22 @@ import type { Database } from './database';
 
 const CHUNK = 1800;
 
+const isWeb = process.env.EXPO_OS === 'web';
+
+function webStorage(): Storage | null {
+  try {
+    return typeof window !== 'undefined' ? window.localStorage : null;
+  } catch {
+    return null;
+  }
+}
+
 async function forget(key: string) {
   try {
+    if (isWeb) {
+      webStorage()?.removeItem(key);
+      return;
+    }
     await SecureStore.deleteItemAsync(key);
   } catch {
     // A missing key is already gone.
@@ -15,6 +29,9 @@ async function forget(key: string) {
 
 const secureStore = {
   async getItem(key: string) {
+    if (isWeb) {
+      return webStorage()?.getItem(key) ?? null;
+    }
     const countRaw = await SecureStore.getItemAsync(`${key}.chunks`);
     if (!countRaw) return SecureStore.getItemAsync(key);
     const count = Number(countRaw);
@@ -25,6 +42,10 @@ const secureStore = {
     return value;
   },
   async setItem(key: string, value: string) {
+    if (isWeb) {
+      webStorage()?.setItem(key, value);
+      return;
+    }
     await secureStore.removeItem(key);
     if (value.length <= CHUNK) {
       await SecureStore.setItemAsync(key, value);
@@ -37,6 +58,10 @@ const secureStore = {
     }
   },
   async removeItem(key: string) {
+    if (isWeb) {
+      webStorage()?.removeItem(key);
+      return;
+    }
     const countRaw = await SecureStore.getItemAsync(`${key}.chunks`);
     if (countRaw) {
       const count = Number(countRaw);

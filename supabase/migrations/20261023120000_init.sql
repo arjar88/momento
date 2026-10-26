@@ -415,7 +415,7 @@ with check (id = auth.uid());
 
 create policy albums_select on public.albums
 for select to authenticated
-using (public.is_album_member(id));
+using (owner_id = auth.uid() or public.is_album_member(id));
 
 create policy albums_insert on public.albums
 for insert to authenticated
@@ -534,20 +534,20 @@ create policy memories_storage_insert on storage.objects
 for insert to authenticated
 with check (
   bucket_id = 'memories'
-  and (storage.foldername(name))[1] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-  and public.is_album_member(((storage.foldername(name))[1])::uuid)
+  and (storage.foldername(objects.name))[1] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+  and public.is_album_member(((storage.foldername(objects.name))[1])::uuid)
   and exists (
     select 1
-    from public.albums
-    where id = ((storage.foldername(name))[1])::uuid
-      and status = 'open'
+    from public.albums a
+    where a.id = ((storage.foldername(objects.name))[1])::uuid
+      and a.status = 'open'
   )
   and exists (
     select 1
-    from public.memories
-    where storage_path = name
-      and author_id = auth.uid()
-      and album_id = ((storage.foldername(name))[1])::uuid
+    from public.memories m
+    where m.storage_path = objects.name
+      and m.author_id = auth.uid()
+      and m.album_id = ((storage.foldername(objects.name))[1])::uuid
   )
 );
 
@@ -555,14 +555,14 @@ create policy memories_storage_delete on storage.objects
 for delete to authenticated
 using (
   bucket_id = 'memories'
-  and (storage.foldername(name))[1] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+  and (storage.foldername(objects.name))[1] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
   and (
-    public.is_album_owner(((storage.foldername(name))[1])::uuid)
+    public.is_album_owner(((storage.foldername(objects.name))[1])::uuid)
     or exists (
       select 1
-      from public.memories
-      where storage_path = name
-        and author_id = auth.uid()
+      from public.memories m
+      where m.storage_path = objects.name
+        and m.author_id = auth.uid()
     )
   )
 );

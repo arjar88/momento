@@ -3,16 +3,19 @@ import * as Notifications from 'expo-notifications';
 import type { Profile } from './database';
 import { parseTime } from '@/utils/dates';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
+if (process.env.EXPO_OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 export async function ensureNotificationPermission(): Promise<boolean> {
+  if (process.env.EXPO_OS === 'web') return false;
   const current = await Notifications.getPermissionsAsync();
   if (current.granted) return true;
   const requested = await Notifications.requestPermissionsAsync();
@@ -20,6 +23,7 @@ export async function ensureNotificationPermission(): Promise<boolean> {
 }
 
 export async function syncReminderNotifications(profile: Profile | null) {
+  if (process.env.EXPO_OS === 'web') return;
   await Notifications.cancelAllScheduledNotificationsAsync();
   if (!profile?.reminder_enabled || !profile.weekly_goal || profile.reminder_weekdays.length === 0) {
     return;

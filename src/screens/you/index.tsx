@@ -1,8 +1,8 @@
-import { FieldGroup, Host, Switch } from '@expo/ui';
+import { Host, Switch } from '@expo/ui';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import { useState, type ReactNode } from 'react';
+import { Alert, Pressable, ScrollView, View } from 'react-native';
 
 import { ErrorState, LoadingState } from '@/components/screen-states';
 import { TextField } from '@/components/text-field';
@@ -11,7 +11,7 @@ import { deleteAccount, fetchPeople, updateProfile } from '@/lib/api';
 import type { WeeklyGoal } from '@/lib/database';
 import { ensureNotificationPermission, syncReminderNotifications } from '@/lib/notifications';
 import { useSession } from '@/lib/session';
-import { spacing, useBrandColors } from '@/theme';
+import { radius, spacing, useBrandColors } from '@/theme';
 import { errorMessage } from '@/utils/errors';
 
 const goals: { value: WeeklyGoal; label: string }[] = [
@@ -104,60 +104,97 @@ export function YouScreen() {
   if (!profile) return <LoadingState label="Loading you" />;
 
   return (
-    <Host style={{ flex: 1 }}>
-      <FieldGroup>
-        <FieldGroup.Section title="Name">
-          <View style={{ gap: spacing.sm, paddingVertical: spacing.sm }}>
-            <TextField value={name} onChangeText={setName} onEndEditing={saveName} placeholder="Your name" autoCapitalize="words" />
-          </View>
-        </FieldGroup.Section>
-        <FieldGroup.Section title="Weekly pace">
-          {goals.map((goal) => {
-            const selected = profile.weekly_goal === goal.value;
-            return (
-              <Pressable key={goal.label} accessibilityRole="button" accessibilityState={{ selected }} disabled={busy} onPress={() => saveGoal(goal.value)}>
-                <ThemedText variant="body" style={{ color: selected ? brand.terracotta : brand.ink }}>
-                  {goal.label}
-                </ThemedText>
-              </Pressable>
-            );
-          })}
-        </FieldGroup.Section>
-        <FieldGroup.Section title="Reminders" >
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md }}>
-            <ThemedText variant="body">Remind me</ThemedText>
-            <Switch value={profile.reminder_enabled} onValueChange={(value) => void toggleReminders(value)} />
-          </View>
-          {profile.reminder_enabled ? (
-            <Pressable accessibilityRole="button" onPress={() => router.push('/you/reminders')}>
-              <ThemedText variant="body" style={{ color: brand.terracotta }}>
-                Days and time
+    <ScrollView
+      keyboardShouldPersistTaps="handled"
+      contentInsetAdjustmentBehavior="automatic"
+      style={{ flex: 1, backgroundColor: brand.paper }}
+      contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.lg }}
+    >
+      <SectionCard title="Name">
+        <TextField value={name} onChangeText={setName} onEndEditing={saveName} placeholder="Your name" autoCapitalize="words" />
+      </SectionCard>
+
+      <SectionCard title="Weekly pace">
+        {goals.map((goal) => {
+          const selected = profile.weekly_goal === goal.value;
+          return (
+            <Pressable
+              key={goal.label}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+              disabled={busy}
+              onPress={() => saveGoal(goal.value)}
+              style={{ paddingVertical: spacing.xs }}
+            >
+              <ThemedText variant="body" style={{ color: selected ? brand.terracotta : brand.ink }}>
+                {goal.label}
               </ThemedText>
             </Pressable>
-          ) : null}
-        </FieldGroup.Section>
-        <FieldGroup.Section title="People">
-          <PeopleBlock query={people} />
-        </FieldGroup.Section>
-        {error ? (
-          <FieldGroup.Section title="Something needs attention">
-            <ThemedText selectable variant="subhead">
-              {error}
-            </ThemedText>
-          </FieldGroup.Section>
-        ) : null}
-        <FieldGroup.Section title="Account">
-          <Pressable accessibilityRole="button" onPress={() => signOut()}>
-            <ThemedText variant="body">Sign out</ThemedText>
-          </Pressable>
-          <Pressable accessibilityRole="button" onPress={removeAccount}>
+          );
+        })}
+      </SectionCard>
+
+      <SectionCard title="Reminders">
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md }}>
+          <ThemedText variant="body">Remind me</ThemedText>
+          <Host matchContents>
+            <Switch value={profile.reminder_enabled} onValueChange={(value) => void toggleReminders(value)} />
+          </Host>
+        </View>
+        {profile.reminder_enabled ? (
+          <Pressable accessibilityRole="button" onPress={() => router.push('/you/reminders')} style={{ paddingTop: spacing.xs }}>
             <ThemedText variant="body" style={{ color: brand.terracotta }}>
-              Delete account
+              Days and time
             </ThemedText>
           </Pressable>
-        </FieldGroup.Section>
-      </FieldGroup>
-    </Host>
+        ) : null}
+      </SectionCard>
+
+      <SectionCard title="People">
+        <PeopleBlock query={people} />
+      </SectionCard>
+
+      {error ? (
+        <SectionCard title="Something needs attention">
+          <ThemedText selectable variant="subhead">
+            {error}
+          </ThemedText>
+        </SectionCard>
+      ) : null}
+
+      <SectionCard title="Account">
+        <Pressable accessibilityRole="button" onPress={() => void signOut()} style={{ paddingVertical: spacing.xs }}>
+          <ThemedText variant="body">Sign out</ThemedText>
+        </Pressable>
+        <Pressable accessibilityRole="button" onPress={removeAccount} style={{ paddingVertical: spacing.xs }}>
+          <ThemedText variant="body" style={{ color: brand.terracotta }}>
+            Delete account
+          </ThemedText>
+        </Pressable>
+      </SectionCard>
+    </ScrollView>
+  );
+}
+
+function SectionCard({ title, children }: { title: string; children: ReactNode }) {
+  const brand = useBrandColors();
+  return (
+    <View style={{ gap: spacing.xs }}>
+      <ThemedText variant="smallCaps">{title}</ThemedText>
+      <View
+        style={{
+          backgroundColor: brand.card,
+          borderRadius: radius.md,
+          borderCurve: 'continuous',
+          borderWidth: 1,
+          borderColor: brand.line,
+          padding: spacing.md,
+          gap: spacing.sm,
+        }}
+      >
+        {children}
+      </View>
+    </View>
   );
 }
 

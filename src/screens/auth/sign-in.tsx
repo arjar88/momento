@@ -22,16 +22,25 @@ export function SignInScreen() {
   const submit = async () => {
     setError(null);
     setPending(true);
+    console.log('[auth] sign-in submit started for:', email.trim());
     try {
       const { data, error: signError } = await requireSupabase().auth.signInWithPassword({
         email: email.trim(),
         password,
       });
-      if (signError) throw new Error(signError.message);
-      const profile = data.user ? await refreshProfile() : null;
-      router.replace(profile?.onboarding_complete ? '/calendar' : '/intro');
+      if (signError) {
+        console.error('[auth] signInWithPassword error:', signError.message);
+        throw new Error(signError.message);
+      }
+      console.log('[auth] signInWithPassword succeeded, userId:', data.user?.id);
+      const profile = data.user ? await refreshProfile(data.user.id) : null;
+      const target = profile?.onboarding_complete ? '/calendar' : '/intro';
+      console.log('[auth] sign-in navigating to:', target, { onboarding_complete: profile?.onboarding_complete ?? false });
+      router.replace(target);
     } catch (caught) {
-      setError(errorMessage(caught, 'Could not sign in.'));
+      const msg = errorMessage(caught, 'Could not sign in.');
+      console.error('[auth] sign-in failed:', msg);
+      setError(msg);
     } finally {
       setPending(false);
     }
@@ -56,6 +65,12 @@ export function SignInScreen() {
         placeholder="Password"
         secureTextEntry
         textContentType="password"
+        returnKeyType="go"
+        onSubmitEditing={() => {
+          if (email.trim() && password.length >= 6 && !pending) {
+            void submit();
+          }
+        }}
       />
       {error ? (
         <ThemedText variant="subhead" selectable>
